@@ -358,22 +358,24 @@ function changeSteps(dateKey, delta){
 function renderWeek(el){
   const wf=getWeekFocus();
   const wn=getWeekNum();
-  // allow manual week override stored in localStorage
   const manualWn = store.get('manualWeek');
   const displayWn = (manualWn !== null && manualWn >= 0) ? manualWn : wn;
+  const aipmSelected = wf.aipm || AIPM_THEMES[displayWn];
+  const eb1aSelected = wf.eb1a || EB1A_THEMES[displayWn];
 
-  el.innerHTML+=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;">
+  // Build ALL html as one string, inject ONCE — never use innerHTML+= before attaching listeners
+  const html = `
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;">
     <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:16px;">Week Plan</div>
     <div style="display:flex;align-items:center;gap:6px;">
-      <button class="month-nav" onclick="changeWeekOverride(-1)">‹</button>
+      <button class="month-nav" id="wk-prev">‹</button>
       <span style="font-family:'Syne',sans-serif;font-weight:800;font-size:14px;color:#a1a1aa;">W${displayWn+1}</span>
-      <button class="month-nav" onclick="changeWeekOverride(1)">›</button>
+      <button class="month-nav" id="wk-next">›</button>
     </div>
   </div>
-  <div style="font-size:11px;color:#52525b;margin-bottom:18px;">Tap a theme to set your focus · execute daily</div>`;
+  <div style="font-size:11px;color:#52525b;margin-bottom:18px;">Tap a theme to set your focus · execute daily</div>
 
-  // Workout schedule
-  el.innerHTML+=`<div class="section">
+  <div class="section">
     <div class="section-title" style="color:#4ade80;">🏃‍♀️ WORKOUT SCHEDULE</div>
     <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;padding:6px 0;">
       ${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>`
@@ -383,40 +385,54 @@ function renderWeek(el){
         <div style="font-size:7px;color:#3f3f46;margin-top:2px;">${d==='Sun'?'Rest':d==='Tue'||d==='Thu'||d==='Sat'?'Yoga':'Str'}</div>
       </div>`).join('')}
     </div>
-  </div>`;
+  </div>
 
-  // AI PM — use data-index to avoid string escaping issues
-  const aipmSelected = wf.aipm || AIPM_THEMES[displayWn];
-  el.innerHTML+=`<div class="section" id="aipm-section">
+  <div class="section">
     <div class="section-title" style="color:#60a5fa;">🤖 AI PM FOCUS</div>
     <div style="font-size:9px;color:#3b82f6;letter-spacing:1px;padding:8px 0 10px;">TAP TO SELECT THIS WEEK'S FOCUS</div>
     ${AIPM_THEMES.map((t,i)=>`
     <div class="theme-item" data-goal="aipm" data-index="${i}"
-      style="${aipmSelected===t?'background:#1e3a5f;border-color:#3b82f6;color:#93c5fd;':''}">
+      style="cursor:pointer;${aipmSelected===t?'background:#1e3a5f;border-color:#3b82f6;color:#93c5fd;':''}">
       <span style="color:#3b82f6;margin-right:4px;">W${i+1}</span>${t}
     </div>`).join('')}
-  </div>`;
+  </div>
 
-  // EB1A — use data-index to avoid string escaping issues
-  const eb1aSelected = wf.eb1a || EB1A_THEMES[displayWn];
-  el.innerHTML+=`<div class="section" id="eb1a-section">
+  <div class="section">
     <div class="section-title" style="color:#f59e0b;">🏆 EB1A FOCUS</div>
     <div style="font-size:9px;color:#d97706;letter-spacing:1px;padding:8px 0 10px;">TAP TO SELECT THIS WEEK'S FOCUS</div>
     ${EB1A_THEMES.map((t,i)=>`
     <div class="theme-item" data-goal="eb1a" data-index="${i}"
-      style="${eb1aSelected===t?'background:#2a1800;border-color:#d97706;color:#fcd34d;':''}">
+      style="cursor:pointer;${eb1aSelected===t?'background:#2a1800;border-color:#d97706;color:#fcd34d;':''}">
       <span style="color:#d97706;margin-right:4px;">W${i+1}</span>${t}
     </div>`).join('')}
-  </div>`;
+  </div>
 
-  el.innerHTML+=`<div class="rule-card">
+  <div class="rule-card">
     <div style="font-size:9px;letter-spacing:2px;color:#52525b;margin-bottom:8px;">☀️ SUNDAY PLANNING · 10 MINS</div>
     1. Use ‹ › to pick your week above<br/>2. Tap your AI PM focus<br/>3. Tap your EB1A focus<br/>
     <span style="color:#52525b;">That's it. You're planned.</span>
   </div>`;
 
-  // Attach tap listeners via event delegation after HTML is inserted
-  el.querySelectorAll('.theme-item[data-goal]').forEach(item=>{
+  // Single injection
+  el.innerHTML = html;
+
+  // Now attach all listeners to freshly-rendered DOM nodes
+  document.getElementById('wk-prev').addEventListener('click', function(e){
+    e.stopPropagation();
+    const cur=store.get('manualWeek');
+    const base=(cur!==null&&cur>=0)?cur:getWeekNum();
+    store.set('manualWeek', Math.max(0, base-1));
+    render();
+  });
+  document.getElementById('wk-next').addEventListener('click', function(e){
+    e.stopPropagation();
+    const cur=store.get('manualWeek');
+    const base=(cur!==null&&cur>=0)?cur:getWeekNum();
+    store.set('manualWeek', Math.min(3, base+1));
+    render();
+  });
+
+  el.querySelectorAll('.theme-item[data-goal]').forEach(function(item){
     item.addEventListener('click', function(){
       const goal = this.getAttribute('data-goal');
       const idx  = parseInt(this.getAttribute('data-index'));
