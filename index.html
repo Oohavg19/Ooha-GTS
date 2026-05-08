@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="theme-color" content="#09090b"/>
+<title>Ooha's OS</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;background:#09090b;color:#e4e4e7;font-family:'DM Mono','Courier New',monospace;overflow-x:hidden;}
+  ::-webkit-scrollbar{width:3px;}
+  ::-webkit-scrollbar-thumb{background:#3f3f46;border-radius:2px;}
+
+  .app{display:flex;flex-direction:column;min-height:100vh;max-width:480px;margin:0 auto;}
+
+  /* Header */
+  .header{background:#111113;border-bottom:1px solid #27272a;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+  .header-title{font-family:'Syne',sans-serif;font-size:19px;font-weight:800;letter-spacing:-0.5px;color:#fafafa;}
+  .header-sub{font-size:9px;color:#52525b;letter-spacing:2px;margin-top:1px;}
+  .header-date{text-align:right;font-size:11px;color:#a1a1aa;}
+  .header-week{font-size:9px;color:#52525b;margin-top:2px;}
+
+  /* Nav */
+  .nav{display:flex;background:#111113;border-bottom:1px solid #27272a;position:sticky;top:57px;z-index:99;}
+  .nav-btn{flex:1;background:none;border:none;border-bottom:2px solid transparent;padding:11px 4px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:#52525b;cursor:pointer;transition:all 0.2s;}
+  .nav-btn.active{color:#fafafa;border-bottom-color:#4ade80;}
+
+  /* Content */
+  .content{padding:16px;flex:1;}
+
+  /* Section */
+  .section{background:#111113;border:1px solid #27272a;border-radius:12px;padding:14px 15px;margin-bottom:10px;}
+  .section-title{font-size:9px;letter-spacing:2px;font-weight:600;margin-bottom:10px;}
+
+  /* Check item */
+  .check-item{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid #1f1f23;cursor:pointer;transition:opacity 0.15s;}
+  .check-item:last-child{border-bottom:none;padding-bottom:0;}
+  .check-item:active{opacity:0.7;}
+  .check-box-icon{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px;transition:all 0.18s;flex-shrink:0;}
+  .check-label{font-size:13px;transition:all 0.18s;}
+  .check-sub{font-size:10px;color:#52525b;margin-top:2px;}
+
+  /* Progress ring */
+  .progress-card{background:#111113;border:1px solid #27272a;border-radius:12px;padding:15px;margin-bottom:10px;display:flex;align-items:center;gap:15px;}
+  .ring-wrap{position:relative;width:76px;height:76px;flex-shrink:0;}
+  .ring-wrap svg{transform:rotate(-90deg);}
+  .ring-center{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:17px;}
+  .progress-title{font-family:'Syne',sans-serif;font-weight:800;font-size:17px;}
+  .progress-sub{font-size:11px;color:#71717a;margin-top:4px;}
+
+  /* MVD */
+  .mvd-toggle{margin-top:8px;font-size:9px;letter-spacing:1.5px;padding:4px 9px;border-radius:5px;border:1px solid #3f3f46;background:#27272a;color:#71717a;cursor:pointer;font-family:'DM Mono',monospace;transition:all 0.2s;}
+  .mvd-toggle.on{background:#1c1a0444;border-color:#fef08a44;color:#fef08a;}
+  .mvd-box{background:#1c1a04;border:1px solid #fef08a33;border-radius:10px;padding:12px 15px;margin-bottom:10px;font-size:11px;color:#fef08a;line-height:1.9;}
+
+  /* Steps */
+  .steps-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid #1f1f23;}
+  .step-btn{width:38px;height:38px;border-radius:8px;border:none;font-size:20px;cursor:pointer;font-family:inherit;transition:all 0.15s;display:flex;align-items:center;justify-content:center;}
+  .step-btn:active{transform:scale(0.93);}
+  .step-val{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;text-align:center;min-width:64px;}
+  .step-unit{font-size:9px;color:#52525b;text-align:center;}
+
+  /* Week theme picker */
+  .theme-item{padding:9px 11px;border-radius:7px;margin-bottom:5px;cursor:pointer;font-size:12px;line-height:1.5;transition:all 0.15s;border:1px solid #27272a;background:#18181b;color:#71717a;}
+  .theme-item:active{opacity:0.75;}
+
+  /* Streak bars */
+  .streak-grid{display:flex;gap:5px;margin-bottom:18px;}
+  .streak-bar{flex:1;text-align:center;}
+  .streak-bar-label{font-size:9px;color:#52525b;margin-bottom:5px;}
+  .streak-bar-fill{height:64px;border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:6px;position:relative;overflow:hidden;border:1px solid #1f1f23;transition:all 0.4s;}
+  .streak-bar-num{font-family:'Syne',sans-serif;font-weight:800;font-size:15px;position:relative;}
+  .streak-bar-den{font-size:8px;color:#3f3f46;margin-top:2px;}
+
+  /* Stats grid */
+  .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+  .stat-card{background:#111113;border:1px solid #27272a;border-radius:10px;padding:14px;text-align:center;}
+  .stat-num{font-family:'Syne',sans-serif;font-weight:800;font-size:28px;}
+  .stat-label{font-size:9px;color:#52525b;margin-top:3px;letter-spacing:1px;}
+
+  /* Monthly calendar */
+  .month-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .month-nav{background:none;border:1px solid #27272a;border-radius:6px;width:32px;height:32px;color:#a1a1aa;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;}
+  .month-title{font-family:'Syne',sans-serif;font-weight:800;font-size:15px;}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+  .cal-day-label{font-size:8px;color:#52525b;text-align:center;padding-bottom:4px;letter-spacing:1px;}
+  .cal-cell{aspect-ratio:1;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;border:1px solid transparent;transition:all 0.15s;position:relative;}
+  .cal-cell:active{opacity:0.7;}
+  .cal-num{font-size:10px;font-weight:500;}
+  .cal-dot{width:4px;height:4px;border-radius:50%;margin-top:2px;}
+
+  /* Monthly summary bars */
+  .month-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+  .month-bar-label{font-size:10px;color:#a1a1aa;width:70px;flex-shrink:0;}
+  .month-bar-track{flex:1;height:8px;background:#27272a;border-radius:4px;overflow:hidden;}
+  .month-bar-fill{height:100%;border-radius:4px;transition:width 0.5s ease;}
+  .month-bar-pct{font-size:10px;color:#52525b;width:32px;text-align:right;flex-shrink:0;}
+
+  /* EOD */
+  .eod-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid #1f1f23;}
+  .eod-row:last-child{border-bottom:none;}
+  .eod-q{font-size:12px;color:#a1a1aa;}
+
+  /* Rule card */
+  .rule-card{background:#111113;border:1px solid #27272a;border-radius:10px;padding:14px 15px;font-size:12px;color:#71717a;line-height:1.9;}
+
+  .fade-in{animation:fadeIn 0.35s ease;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+  /* Selected day detail */
+  .day-detail{background:#18181b;border:1px solid #27272a;border-radius:10px;padding:13px 15px;margin-top:10px;}
+  .day-detail-title{font-size:10px;letter-spacing:2px;color:#52525b;margin-bottom:10px;}
+  .detail-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;font-size:12px;}
+  .detail-label{color:#71717a;}
+  .detail-val{font-size:13px;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <div class="header">
+    <div>
+      <div class="header-title">OOHA'S OS</div>
+      <div class="header-sub">GOAL OPERATING SYSTEM</div>
+    </div>
+    <div class="header-date" id="hdrDate"></div>
+  </div>
+
+  <!-- Nav -->
+  <div class="nav">
+    <button class="nav-btn active" onclick="showView('today')">TODAY</button>
+    <button class="nav-btn" onclick="showView('week')">WEEKLY</button>
+    <button class="nav-btn" onclick="showView('streak')">STREAK</button>
+    <button class="nav-btn" onclick="showView('month')">MONTHLY</button>
+  </div>
+
+  <!-- Content -->
+  <div class="content" id="content"></div>
+
+</div>
+
+<script>
+// ─── State & Storage ───────────────────────────────────────────────
+const store = {
+  get(k){ try{ return JSON.parse(localStorage.getItem(k)); }catch{ return null; } },
+  set(k,v){ localStorage.setItem(k, JSON.stringify(v)); }
+};
+
+function todayKey(){ return new Date().toISOString().split('T')[0]; }
+function weekKey(){
+  const d=new Date(), day=d.getDay(), diff=d.getDate()-day+(day===0?-6:1);
+  return new Date(new Date().setDate(diff)).toISOString().split('T')[0];
+}
+function getDayAbbr(d){ return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][(d||new Date()).getDay()]; }
+function getWeekNum(){
+  const d=new Date(), start=new Date(d.getFullYear(),0,1);
+  return ((Math.ceil(((d-start)/86400000+start.getDay()+1)/7)-1)%4);
+}
+function fmtDate(d){ return d.toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'}); }
+function fmtMonth(y,m){ return new Date(y,m,1).toLocaleDateString('en-US',{month:'long',year:'numeric'}); }
+
+const HEALTH_TASKS={ Mon:'💪 Strength', Tue:'🧘 Yoga', Wed:'💪 Strength', Thu:'🧘 Yoga', Fri:'💪 Strength', Sat:'🧘 Yoga', Sun:'🚶 Walk/Rest' };
+const AIPM_THEMES=[
+  'Learn one PM concept + write a 1-para summary',
+  'Build a PRD or user story map',
+  'Do a product teardown (any AI tool)',
+  'Ship something small — tool, case study, or LinkedIn post',
+];
+const EB1A_THEMES=[
+  'Brain dump master resume — all awards, impact, numbers',
+  'Refine master resume + identify EB1A criteria',
+  'Draft tailored resume + LinkedIn update',
+  'Work on one EB1A pillar (letters, speaking, publications)',
+];
+
+let currentView = 'today';
+let mvdOn = false;
+let calYear = new Date().getFullYear();
+let calMonth = new Date().getMonth();
+let selectedDay = null;
+
+// ─── Helpers ────────────────────────────────────────────────────────
+function getChecks(){ return store.get('checks')||{}; }
+function setChecks(c){ store.set('checks',c); }
+function getSteps(key){ return parseInt(store.get('steps_'+key)||0); }
+function setSteps(key,v){ store.set('steps_'+key,v); }
+function getWeekFocus(){ return store.get('weekFocus')||{}; }
+function setWeekFocus(wf){ store.set('weekFocus',wf); }
+
+function getDayData(dateKey){
+  const c=getChecks();
+  return {
+    meditate: !!c[dateKey+'_meditate'],
+    workout:  !!c[dateKey+'_workout'],
+    aipm:     !!c[dateKey+'_aipm'],
+    eb1a:     !!c[dateKey+'_eb1a'],
+    steps:    getSteps(dateKey),
+  };
+}
+
+function getDayScore(dateKey){
+  const d=getDayData(dateKey);
+  return (d.meditate?1:0)+(d.workout?1:0)+(d.aipm?1:0)+(d.eb1a?1:0)+(d.steps>=6000?1:0);
+}
+
+// ─── Header ─────────────────────────────────────────────────────────
+function renderHeader(){
+  document.getElementById('hdrDate').innerHTML=
+    `<div>${fmtDate(new Date())}</div><div class="header-week">Week ${getWeekNum()+1} theme</div>`;
+}
+
+// ─── View router ────────────────────────────────────────────────────
+function showView(v){
+  currentView=v;
+  document.querySelectorAll('.nav-btn').forEach((b,i)=>{
+    b.classList.toggle('active',['today','week','streak','month'][i]===v);
+  });
+  render();
+}
+
+function render(){
+  const el=document.getElementById('content');
+  el.innerHTML='';
+  el.className='content fade-in';
+  if(currentView==='today') renderToday(el);
+  else if(currentView==='week') renderWeek(el);
+  else if(currentView==='streak') renderStreak(el);
+  else if(currentView==='month') renderMonth(el);
+}
+
+// ─── TODAY ──────────────────────────────────────────────────────────
+function renderToday(el){
+  const tk=todayKey();
+  const c=getChecks();
+  const steps=getSteps(tk);
+  const done={
+    meditate:!!c[tk+'_meditate'],
+    workout:!!c[tk+'_workout'],
+    steps:steps>=6000,
+    aipm:!!c[tk+'_aipm'],
+    eb1a:!!c[tk+'_eb1a'],
+  };
+  const total=Object.values(done).filter(Boolean).length;
+  const pct=Math.round(total/5*100);
+  const circ=2*Math.PI*30;
+  const offset=circ*(1-pct/100);
+
+  const statusMsg=pct===100?'🎉 Full day!':pct>=60?'Solid progress':pct>=40?'Keep going':'Let\'s get started';
+  const ringColor=pct===100?'#4ade80':'#60a5fa';
+
+  el.innerHTML+=`
+  <div class="progress-card">
+    <div class="ring-wrap">
+      <svg width="76" height="76" viewBox="0 0 76 76">
+        <circle cx="38" cy="38" r="30" fill="none" stroke="#27272a" stroke-width="7"/>
+        <circle cx="38" cy="38" r="30" fill="none" stroke="${ringColor}" stroke-width="7"
+          stroke-dasharray="${circ}" stroke-dashoffset="${offset}" stroke-linecap="round"
+          style="transition:stroke-dashoffset 0.5s ease"/>
+      </svg>
+      <div class="ring-center" style="color:${pct===100?'#4ade80':'#fafafa'}">${pct}%</div>
+    </div>
+    <div>
+      <div class="progress-title">${statusMsg}</div>
+      <div class="progress-sub">${total}/5 tasks done today</div>
+      <button class="mvd-toggle ${mvdOn?'on':''}" onclick="toggleMvd()">${mvdOn?'✦ MVD MODE ON':'TOUGH DAY? → MVD'}</button>
+    </div>
+  </div>`;
+
+  if(mvdOn) el.innerHTML+=`
+  <div class="mvd-box">
+    <div style="font-weight:600;margin-bottom:6px;">⚡ MINIMUM VIABLE DAY</div>
+    • 10 min meditation<br/>• 10 min AI PM (read one article)<br/>• 10 min EB1A (one resume bullet)<br/>
+    <span style="color:#fef08a;font-weight:600;">30 minutes keeps your streak alive.</span>
+  </div>`;
+
+  // Health
+  el.innerHTML+=`<div class="section">
+    <div class="section-title" style="color:#4ade80;">🏃‍♀️ HEALTH</div>
+    <div class="check-item" onclick="toggleCheck('${tk}_meditate')">
+      ${checkBox(done.meditate,'#4ade80')}
+      <div style="margin-left:10px;flex:1"><div class="check-label" style="color:${done.meditate?'#4ade80':'#e4e4e7'};text-decoration:${done.meditate?'line-through':'none'}">Meditate 10 mins</div><div class="check-sub">First thing, before phone</div></div>
+    </div>
+    <div class="check-item" onclick="toggleCheck('${tk}_workout')">
+      ${checkBox(done.workout,'#4ade80')}
+      <div style="margin-left:10px;flex:1"><div class="check-label" style="color:${done.workout?'#4ade80':'#e4e4e7'};text-decoration:${done.workout?'line-through':'none'}">${HEALTH_TASKS[getDayAbbr()]||'💪 Workout'}</div><div class="check-sub">Today's schedule</div></div>
+    </div>
+    <div class="steps-row">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="check-box-icon" style="background:${done.steps?'#4ade8022':'#27272a'};border:1px solid ${done.steps?'#4ade8066':'#3f3f46'};">🚶</div>
+        <div><div class="check-label" style="color:${done.steps?'#4ade80':'#e4e4e7'}">Daily Steps</div><div class="check-sub">Target: 6,000–8,000</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <button class="step-btn" style="background:#27272a;color:#71717a;" onclick="changeSteps('${tk}',-500)">−</button>
+        <div><div class="step-val" style="color:${steps>=8000?'#4ade80':steps>=6000?'#a3e635':'#fafafa'}" id="stepVal">${steps.toLocaleString()}</div><div class="step-unit">steps</div></div>
+        <button class="step-btn" style="background:#27272a;color:#4ade80;" onclick="changeSteps('${tk}',500)">+</button>
+      </div>
+    </div>
+  </div>`;
+
+  // AI PM
+  const wf=getWeekFocus();
+  el.innerHTML+=`<div class="section">
+    <div class="section-title" style="color:#60a5fa;">🤖 AI PM</div>
+    <div style="padding:10px 0;border-bottom:1px solid #1f1f23;">
+      <div style="font-size:9px;color:#3b82f6;letter-spacing:1px;margin-bottom:5px;">THIS WEEK'S FOCUS</div>
+      <div style="font-size:12px;color:#a1a1aa;line-height:1.6;">${wf.aipm||AIPM_THEMES[getWeekNum()]}</div>
+    </div>
+    <div class="check-item" onclick="toggleCheck('${tk}_aipm')">
+      ${checkBox(done.aipm,'#60a5fa')}
+      <div style="margin-left:10px;flex:1"><div class="check-label" style="color:${done.aipm?'#60a5fa':'#e4e4e7'};text-decoration:${done.aipm?'line-through':'none'}">60 min deep work block</div><div class="check-sub">Timer on, phone away</div></div>
+    </div>
+  </div>`;
+
+  // EB1A
+  el.innerHTML+=`<div class="section">
+    <div class="section-title" style="color:#f59e0b;">🏆 EB1A PROFILE</div>
+    <div style="padding:10px 0;border-bottom:1px solid #1f1f23;">
+      <div style="font-size:9px;color:#d97706;letter-spacing:1px;margin-bottom:5px;">THIS WEEK'S FOCUS</div>
+      <div style="font-size:12px;color:#a1a1aa;line-height:1.6;">${wf.eb1a||EB1A_THEMES[getWeekNum()]}</div>
+    </div>
+    <div class="check-item" onclick="toggleCheck('${tk}_eb1a')">
+      ${checkBox(done.eb1a,'#f59e0b')}
+      <div style="margin-left:10px;flex:1"><div class="check-label" style="color:${done.eb1a?'#f59e0b':'#e4e4e7'};text-decoration:${done.eb1a?'line-through':'none'}">45 min focused sprint</div><div class="check-sub">One task from week's theme</div></div>
+    </div>
+  </div>`;
+
+  // EOD
+  el.innerHTML+=`<div class="section">
+    <div class="section-title" style="color:#71717a;">END OF DAY · 3 QUESTIONS</div>
+    ${eodRow('Did I move my body?', done.workout||done.steps)}
+    ${eodRow('Did I do my deep work?', done.aipm)}
+    ${eodRow('Did I do my EB1A sprint?', done.eb1a)}
+  </div>`;
+}
+
+function checkBox(done, color){
+  return `<div class="check-box-icon" style="background:${done?color+'22':'#27272a'};border:1px solid ${done?color+'66':'#3f3f46'};color:${done?color:'#52525b'};">${done?'✓':''}</div>`;
+}
+function eodRow(q,done){
+  return `<div class="eod-row"><div class="eod-q">${q}</div><div style="font-size:17px;">${done?'✅':'⬜'}</div></div>`;
+}
+
+function toggleMvd(){ mvdOn=!mvdOn; render(); }
+function toggleCheck(key){
+  const c=getChecks(); c[key]=!c[key]; setChecks(c); render();
+}
+function changeSteps(dateKey, delta){
+  const cur=getSteps(dateKey);
+  setSteps(dateKey, Math.max(0,Math.min(20000,cur+delta)));
+  render();
+}
+
+// ─── WEEK ───────────────────────────────────────────────────────────
+function renderWeek(el){
+  const wf=getWeekFocus();
+  const wn=getWeekNum();
+  // allow manual week override stored in localStorage
+  const manualWn = store.get('manualWeek');
+  const displayWn = (manualWn !== null && manualWn >= 0) ? manualWn : wn;
+
+  el.innerHTML+=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;">
+    <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:16px;">Week Plan</div>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <button class="month-nav" onclick="changeWeekOverride(-1)">‹</button>
+      <span style="font-family:'Syne',sans-serif;font-weight:800;font-size:14px;color:#a1a1aa;">W${displayWn+1}</span>
+      <button class="month-nav" onclick="changeWeekOverride(1)">›</button>
+    </div>
+  </div>
+  <div style="font-size:11px;color:#52525b;margin-bottom:18px;">Tap a theme to set your focus · execute daily</div>`;
+
+  // Workout schedule
+  el.innerHTML+=`<div class="section">
+    <div class="section-title" style="color:#4ade80;">🏃‍♀️ WORKOUT SCHEDULE</div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;padding:6px 0;">
+      ${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>`
+      <div style="text-align:center;">
+        <div style="font-size:8px;color:#52525b;margin-bottom:4px;">${d}</div>
+        <div style="font-size:20px;">${HEALTH_TASKS[d].split(' ')[0]}</div>
+        <div style="font-size:7px;color:#3f3f46;margin-top:2px;">${d==='Sun'?'Rest':d==='Tue'||d==='Thu'||d==='Sat'?'Yoga':'Str'}</div>
+      </div>`).join('')}
+    </div>
+  </div>`;
+
+  // AI PM — use data-index to avoid string escaping issues
+  const aipmSelected = wf.aipm || AIPM_THEMES[displayWn];
+  el.innerHTML+=`<div class="section" id="aipm-section">
+    <div class="section-title" style="color:#60a5fa;">🤖 AI PM FOCUS</div>
+    <div style="font-size:9px;color:#3b82f6;letter-spacing:1px;padding:8px 0 10px;">TAP TO SELECT THIS WEEK'S FOCUS</div>
+    ${AIPM_THEMES.map((t,i)=>`
+    <div class="theme-item" data-goal="aipm" data-index="${i}"
+      style="${aipmSelected===t?'background:#1e3a5f;border-color:#3b82f6;color:#93c5fd;':''}">
+      <span style="color:#3b82f6;margin-right:4px;">W${i+1}</span>${t}
+    </div>`).join('')}
+  </div>`;
+
+  // EB1A — use data-index to avoid string escaping issues
+  const eb1aSelected = wf.eb1a || EB1A_THEMES[displayWn];
+  el.innerHTML+=`<div class="section" id="eb1a-section">
+    <div class="section-title" style="color:#f59e0b;">🏆 EB1A FOCUS</div>
+    <div style="font-size:9px;color:#d97706;letter-spacing:1px;padding:8px 0 10px;">TAP TO SELECT THIS WEEK'S FOCUS</div>
+    ${EB1A_THEMES.map((t,i)=>`
+    <div class="theme-item" data-goal="eb1a" data-index="${i}"
+      style="${eb1aSelected===t?'background:#2a1800;border-color:#d97706;color:#fcd34d;':''}">
+      <span style="color:#d97706;margin-right:4px;">W${i+1}</span>${t}
+    </div>`).join('')}
+  </div>`;
+
+  el.innerHTML+=`<div class="rule-card">
+    <div style="font-size:9px;letter-spacing:2px;color:#52525b;margin-bottom:8px;">☀️ SUNDAY PLANNING · 10 MINS</div>
+    1. Use ‹ › to pick your week above<br/>2. Tap your AI PM focus<br/>3. Tap your EB1A focus<br/>
+    <span style="color:#52525b;">That's it. You're planned.</span>
+  </div>`;
+
+  // Attach tap listeners via event delegation after HTML is inserted
+  el.querySelectorAll('.theme-item[data-goal]').forEach(item=>{
+    item.addEventListener('click', function(){
+      const goal = this.getAttribute('data-goal');
+      const idx  = parseInt(this.getAttribute('data-index'));
+      const theme = goal==='aipm' ? AIPM_THEMES[idx] : EB1A_THEMES[idx];
+      const wf2 = getWeekFocus();
+      wf2[goal] = theme;
+      setWeekFocus(wf2);
+      render();
+    });
+  });
+}
+
+function changeWeekOverride(delta){
+  const cur = store.get('manualWeek');
+  const base = (cur !== null && cur >= 0) ? cur : getWeekNum();
+  store.set('manualWeek', Math.max(0, Math.min(3, base + delta)));
+  render();
+}
+
+function selectTheme(goal, theme){
+  const wf=getWeekFocus(); wf[goal]=theme; setWeekFocus(wf); render();
+}
+
+// ─── STREAK ──────────────────────────────────────────────────────────
+function renderStreak(el){
+  el.innerHTML+=`<div style="font-family:'Syne',sans-serif;font-weight:800;font-size:16px;margin-bottom:3px;">Your Streak</div>
+  <div style="font-size:11px;color:#52525b;margin-bottom:18px;">Last 7 days · 5 = perfect day</div>`;
+
+  const last7=Array.from({length:7},(_,i)=>{
+    const d=new Date(); d.setDate(d.getDate()-(6-i));
+    const k=d.toISOString().split('T')[0];
+    return {key:k,label:['Su','Mo','Tu','We','Th','Fr','Sa'][d.getDay()],total:getDayScore(k)};
+  });
+
+  el.innerHTML+=`<div class="streak-grid">${last7.map(({label,total})=>`
+    <div class="streak-bar">
+      <div class="streak-bar-label">${label}</div>
+      <div class="streak-bar-fill" style="background:${total===5?'#052e16':total>0?'#111113':'#0d0d0f'};border-color:${total===5?'#4ade8066':total>0?'#27272a':'#1a1a1a'};">
+        <div style="position:absolute;bottom:0;left:0;right:0;height:${total/5*100}%;background:${total===5?'#4ade8022':'#60a5fa11'};transition:height 0.5s;"></div>
+        <div class="streak-bar-num" style="color:${total===5?'#4ade80':total>0?'#a1a1aa':'#3f3f46'}">${total}</div>
+        <div class="streak-bar-den">/5</div>
+      </div>
+    </div>`).join('')}</div>`;
+
+  const perfectDays=last7.filter(d=>d.total===5).length;
+  const activeDays=last7.filter(d=>d.total>0).length;
+  el.innerHTML+=`<div class="stats-grid">
+    <div class="stat-card"><div class="stat-num" style="color:#4ade80;">${perfectDays}</div><div class="stat-label">PERFECT DAYS</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:#60a5fa;">${activeDays}</div><div class="stat-label">ACTIVE DAYS</div></div>
+  </div>`;
+
+  el.innerHTML+=`<div class="rule-card">
+    <div style="font-size:9px;letter-spacing:2px;color:#52525b;margin-bottom:8px;">THE RULE</div>
+    Miss one day? That's okay.<br/><span style="color:#a1a1aa;">Never miss two in a row.</span><br/>
+    On hard days, activate <span style="color:#fef08a;">MVD mode</span> — 30 mins keeps the streak alive.
+  </div>`;
+}
+
+// ─── MONTHLY ─────────────────────────────────────────────────────────
+function renderMonth(el){
+  const now=new Date();
+  const y=calYear, m=calMonth;
+  const monthLabel=fmtMonth(y,m);
+  const daysInMonth=new Date(y,m+1,0).getDate();
+  const firstDow=new Date(y,m,1).getDay(); // 0=Sun
+  const todayStr=todayKey();
+
+  // Compute month stats
+  let medCount=0,workoutCount=0,aipmCount=0,eb1aCount=0,stepsCount=0,totalDays=0;
+  const dayScores={};
+  for(let d=1;d<=daysInMonth;d++){
+    const dk=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const data=getDayData(dk);
+    const score=getDayScore(dk);
+    dayScores[d]={score, data, dk};
+    // Only count days that have passed or are today
+    const isPast=dk<=todayStr;
+    if(isPast && score>0){ totalDays++; }
+    if(isPast && data.meditate) medCount++;
+    if(isPast && data.workout) workoutCount++;
+    if(isPast && data.aipm) aipmCount++;
+    if(isPast && data.eb1a) eb1aCount++;
+    if(isPast && data.steps>=6000) stepsCount++;
+  }
+  const passedDays=Array.from({length:daysInMonth},(_,i)=>{
+    const dk=`${y}-${String(m+1).padStart(2,'0')}-${String(i+1).padStart(2,'0')}`;
+    return dk<=todayStr;
+  }).filter(Boolean).length;
+
+  el.innerHTML+=`
+  <div class="month-header">
+    <button class="month-nav" onclick="changeMonth(-1)">‹</button>
+    <div class="month-title">${monthLabel}</div>
+    <button class="month-nav" onclick="changeMonth(1)">›</button>
+  </div>`;
+
+  // Calendar grid
+  const dow=['Su','Mo','Tu','We','Th','Fr','Sa'];
+  let calHtml=`<div class="section"><div class="cal-grid">`;
+  dow.forEach(d=>{ calHtml+=`<div class="cal-day-label">${d}</div>`; });
+
+  // Empty cells for offset (week starts Sunday)
+  for(let i=0;i<firstDow;i++) calHtml+=`<div></div>`;
+
+  for(let d=1;d<=daysInMonth;d++){
+    const {score,dk}=dayScores[d];
+    const isToday=dk===todayStr;
+    const isFuture=dk>todayStr;
+    const isSel=selectedDay===d && calYear===y && calMonth===m;
+    const color=score===5?'#4ade80':score>=3?'#a3e635':score>=1?'#60a5fa':'transparent';
+    const borderColor=isToday?'#fafafa':isSel?'#60a5fa':'transparent';
+    calHtml+=`<div class="cal-cell" onclick="selectCalDay(${d})"
+      style="background:${isFuture?'#111113':score===0?'#18181b':color+'18'};border-color:${borderColor};">
+      <div class="cal-num" style="color:${isFuture?'#3f3f46':isToday?'#fafafa':score>0?color:'#71717a'}">${d}</div>
+      ${!isFuture&&score>0?`<div class="cal-dot" style="background:${color};opacity:0.8;"></div>`:'<div class="cal-dot"></div>'}
+    </div>`;
+  }
+  calHtml+=`</div></div>`;
+  el.innerHTML+=calHtml;
+
+  // Selected day detail
+  if(selectedDay && calYear===y && calMonth===m){
+    const {score,data}=dayScores[selectedDay];
+    const dk=dayScores[selectedDay].dk;
+    const isFuture=dk>todayStr;
+    el.innerHTML+=`<div class="day-detail">
+      <div class="day-detail-title">${new Date(y,m,selectedDay).toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'}).toUpperCase()} · ${isFuture?'UPCOMING':score+'/5'}</div>
+      ${isFuture?'<div style="font-size:12px;color:#52525b;">No data yet — future date.</div>':`
+      <div class="detail-row"><div class="detail-label">🧘 Meditate</div><div class="detail-val">${data.meditate?'✅':'❌'}</div></div>
+      <div class="detail-row"><div class="detail-label">💪 Workout</div><div class="detail-val">${data.workout?'✅':'❌'}</div></div>
+      <div class="detail-row"><div class="detail-label">🚶 Steps</div><div class="detail-val" style="color:${data.steps>=6000?'#4ade80':'#71717a'}">${data.steps.toLocaleString()}</div></div>
+      <div class="detail-row"><div class="detail-label">🤖 AI PM</div><div class="detail-val">${data.aipm?'✅':'❌'}</div></div>
+      <div class="detail-row"><div class="detail-label">🏆 EB1A</div><div class="detail-val">${data.eb1a?'✅':'❌'}</div></div>`}
+    </div>`;
+  }
+
+  // Monthly summary bars
+  el.innerHTML+=`<div class="section">
+    <div class="section-title" style="color:#a1a1aa;">📊 MONTH SUMMARY</div>
+    ${monthBar('🧘 Meditate', medCount, passedDays, '#4ade80')}
+    ${monthBar('💪 Workout', workoutCount, passedDays, '#4ade80')}
+    ${monthBar('🚶 Steps 6K+', stepsCount, passedDays, '#a3e635')}
+    ${monthBar('🤖 AI PM', aipmCount, passedDays, '#60a5fa')}
+    ${monthBar('🏆 EB1A', eb1aCount, passedDays, '#f59e0b')}
+  </div>`;
+
+  // Perfect days stat
+  const perfectDays=Object.values(dayScores).filter(({score,dk})=>score===5&&dk<=todayStr).length;
+  el.innerHTML+=`<div class="stats-grid">
+    <div class="stat-card"><div class="stat-num" style="color:#4ade80;">${perfectDays}</div><div class="stat-label">PERFECT DAYS</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:#60a5fa;">${totalDays}</div><div class="stat-label">ACTIVE DAYS</div></div>
+  </div>`;
+}
+
+function monthBar(label, count, total, color){
+  const pct=total>0?Math.round(count/total*100):0;
+  return `<div class="month-bar-row">
+    <div class="month-bar-label">${label}</div>
+    <div class="month-bar-track"><div class="month-bar-fill" style="width:${pct}%;background:${color};"></div></div>
+    <div class="month-bar-pct">${pct}%</div>
+  </div>`;
+}
+
+function changeMonth(delta){
+  calMonth+=delta;
+  if(calMonth>11){calMonth=0;calYear++;}
+  if(calMonth<0){calMonth=11;calYear--;}
+  selectedDay=null;
+  render();
+}
+
+function selectCalDay(d){
+  selectedDay=(selectedDay===d&&calYear===new Date().getFullYear()&&calMonth===new Date().getMonth())?null:d;
+  render();
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────
+renderHeader();
+render();
+</script>
+</body>
+</html>
