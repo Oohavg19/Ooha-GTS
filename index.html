@@ -355,105 +355,82 @@ function changeSteps(dateKey, delta){
 }
 
 // ─── WEEK ───────────────────────────────────────────────────────────
-function renderWeek(el){
-  const wf=getWeekFocus();
-  const wn=getWeekNum();
-  const manualWn = store.get('manualWeek');
-  const displayWn = (manualWn !== null && manualWn >= 0) ? manualWn : wn;
-  const aipmSelected = wf.aipm || AIPM_THEMES[displayWn];
-  const eb1aSelected = wf.eb1a || EB1A_THEMES[displayWn];
-
-  // Build ALL html as one string, inject ONCE — never use innerHTML+= before attaching listeners
-  const html = `
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;">
-    <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:16px;">Week Plan</div>
-    <div style="display:flex;align-items:center;gap:6px;">
-      <button class="month-nav" id="wk-prev">‹</button>
-      <span style="font-family:'Syne',sans-serif;font-weight:800;font-size:14px;color:#a1a1aa;">W${displayWn+1}</span>
-      <button class="month-nav" id="wk-next">›</button>
-    </div>
-  </div>
-  <div style="font-size:11px;color:#52525b;margin-bottom:18px;">Tap a theme to set your focus · execute daily</div>
-
-  <div class="section">
-    <div class="section-title" style="color:#4ade80;">🏃‍♀️ WORKOUT SCHEDULE</div>
-    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;padding:6px 0;">
-      ${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>`
-      <div style="text-align:center;">
-        <div style="font-size:8px;color:#52525b;margin-bottom:4px;">${d}</div>
-        <div style="font-size:20px;">${HEALTH_TASKS[d].split(' ')[0]}</div>
-        <div style="font-size:7px;color:#3f3f46;margin-top:2px;">${d==='Sun'?'Rest':d==='Tue'||d==='Thu'||d==='Sat'?'Yoga':'Str'}</div>
-      </div>`).join('')}
-    </div>
-  </div>
-
-  <div class="section">
-    <div class="section-title" style="color:#60a5fa;">🤖 AI PM FOCUS</div>
-    <div style="font-size:9px;color:#3b82f6;letter-spacing:1px;padding:8px 0 10px;">TAP TO SELECT THIS WEEK'S FOCUS</div>
-    ${AIPM_THEMES.map((t,i)=>`
-    <div class="theme-item" data-goal="aipm" data-index="${i}"
-      style="cursor:pointer;${aipmSelected===t?'background:#1e3a5f;border-color:#3b82f6;color:#93c5fd;':''}">
-      <span style="color:#3b82f6;margin-right:4px;">W${i+1}</span>${t}
-    </div>`).join('')}
-  </div>
-
-  <div class="section">
-    <div class="section-title" style="color:#f59e0b;">🏆 EB1A FOCUS</div>
-    <div style="font-size:9px;color:#d97706;letter-spacing:1px;padding:8px 0 10px;">TAP TO SELECT THIS WEEK'S FOCUS</div>
-    ${EB1A_THEMES.map((t,i)=>`
-    <div class="theme-item" data-goal="eb1a" data-index="${i}"
-      style="cursor:pointer;${eb1aSelected===t?'background:#2a1800;border-color:#d97706;color:#fcd34d;':''}">
-      <span style="color:#d97706;margin-right:4px;">W${i+1}</span>${t}
-    </div>`).join('')}
-  </div>
-
-  <div class="rule-card">
-    <div style="font-size:9px;letter-spacing:2px;color:#52525b;margin-bottom:8px;">☀️ SUNDAY PLANNING · 10 MINS</div>
-    1. Use ‹ › to pick your week above<br/>2. Tap your AI PM focus<br/>3. Tap your EB1A focus<br/>
-    <span style="color:#52525b;">That's it. You're planned.</span>
-  </div>`;
-
-  // Single injection
-  el.innerHTML = html;
-
-  // Now attach all listeners to freshly-rendered DOM nodes
-  document.getElementById('wk-prev').addEventListener('click', function(e){
-    e.stopPropagation();
-    const cur=store.get('manualWeek');
-    const base=(cur!==null&&cur>=0)?cur:getWeekNum();
-    store.set('manualWeek', Math.max(0, base-1));
-    render();
-  });
-  document.getElementById('wk-next').addEventListener('click', function(e){
-    e.stopPropagation();
-    const cur=store.get('manualWeek');
-    const base=(cur!==null&&cur>=0)?cur:getWeekNum();
-    store.set('manualWeek', Math.min(3, base+1));
-    render();
-  });
-
-  el.querySelectorAll('.theme-item[data-goal]').forEach(function(item){
-    item.addEventListener('click', function(){
-      const goal = this.getAttribute('data-goal');
-      const idx  = parseInt(this.getAttribute('data-index'));
-      const theme = goal==='aipm' ? AIPM_THEMES[idx] : EB1A_THEMES[idx];
-      const wf2 = getWeekFocus();
-      wf2[goal] = theme;
-      setWeekFocus(wf2);
-      render();
-    });
-  });
-}
-
-function changeWeekOverride(delta){
-  const cur = store.get('manualWeek');
-  const base = (cur !== null && cur >= 0) ? cur : getWeekNum();
-  store.set('manualWeek', Math.max(0, Math.min(3, base + delta)));
+function pickTheme(goal, idx){
+  var wf=getWeekFocus();
+  wf[goal] = goal==='aipm' ? AIPM_THEMES[idx] : EB1A_THEMES[idx];
+  setWeekFocus(wf);
   render();
 }
 
-function selectTheme(goal, theme){
-  const wf=getWeekFocus(); wf[goal]=theme; setWeekFocus(wf); render();
+function changeWeekOverride(delta){
+  var cur=store.get('manualWeek');
+  var base=(cur!==null&&cur>=0)?cur:getWeekNum();
+  store.set('manualWeek', Math.max(0,Math.min(3,base+delta)));
+  render();
+}
+
+function renderWeek(el){
+  var wf=getWeekFocus();
+  var wn=getWeekNum();
+  var manualWn=store.get('manualWeek');
+  var displayWn=(manualWn!==null&&manualWn>=0)?manualWn:wn;
+  var aipmSelected=wf.aipm||AIPM_THEMES[displayWn];
+  var eb1aSelected=wf.eb1a||EB1A_THEMES[displayWn];
+
+  var rows='';
+
+  // Header + week nav
+  rows+=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;">
+    <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:16px;">Week Plan</div>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <button class="month-nav" onclick="changeWeekOverride(-1)">‹</button>
+      <span style="font-family:'Syne',sans-serif;font-weight:800;font-size:14px;color:#a1a1aa;">W${displayWn+1}</span>
+      <button class="month-nav" onclick="changeWeekOverride(1)">›</button>
+    </div>
+  </div>
+  <div style="font-size:11px;color:#52525b;margin-bottom:18px;">Tap a theme to set your focus</div>`;
+
+  // Workout grid
+  rows+=`<div class="section"><div class="section-title" style="color:#4ade80;">🏃‍♀️ WORKOUT SCHEDULE</div>
+  <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;padding:6px 0;">
+  ${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(function(d){
+    return `<div style="text-align:center;">
+      <div style="font-size:8px;color:#52525b;margin-bottom:4px;">${d}</div>
+      <div style="font-size:20px;">${HEALTH_TASKS[d].split(' ')[0]}</div>
+      <div style="font-size:7px;color:#3f3f46;margin-top:2px;">${d==='Sun'?'Rest':d==='Tue'||d==='Thu'||d==='Sat'?'Yoga':'Str'}</div>
+    </div>`;
+  }).join('')}
+  </div></div>`;
+
+  // AI PM themes — onclick calls pickTheme('aipm', INDEX) with plain number, no string passing
+  rows+=`<div class="section"><div class="section-title" style="color:#60a5fa;">🤖 AI PM FOCUS</div>
+  <div style="font-size:9px;color:#3b82f6;letter-spacing:1px;padding:6px 0 10px;">TAP TO SELECT THIS WEEK'S FOCUS</div>`;
+  for(var i=0;i<AIPM_THEMES.length;i++){
+    var sel=aipmSelected===AIPM_THEMES[i];
+    rows+=`<div onclick="pickTheme('aipm',${i})" style="padding:9px 11px;border-radius:7px;margin-bottom:5px;font-size:12px;line-height:1.5;border:1px solid ${sel?'#3b82f6':'#27272a'};background:${sel?'#1e3a5f':'#18181b'};color:${sel?'#93c5fd':'#71717a'};cursor:pointer;-webkit-tap-highlight-color:rgba(0,0,0,0);">
+      <span style="color:#3b82f6;margin-right:4px;">W${i+1}</span>${AIPM_THEMES[i]}
+    </div>`;
+  }
+  rows+=`</div>`;
+
+  // EB1A themes — same pattern
+  rows+=`<div class="section"><div class="section-title" style="color:#f59e0b;">🏆 EB1A FOCUS</div>
+  <div style="font-size:9px;color:#d97706;letter-spacing:1px;padding:6px 0 10px;">TAP TO SELECT THIS WEEK'S FOCUS</div>`;
+  for(var j=0;j<EB1A_THEMES.length;j++){
+    var selE=eb1aSelected===EB1A_THEMES[j];
+    rows+=`<div onclick="pickTheme('eb1a',${j})" style="padding:9px 11px;border-radius:7px;margin-bottom:5px;font-size:12px;line-height:1.5;border:1px solid ${selE?'#d97706':'#27272a'};background:${selE?'#2a1800':'#18181b'};color:${selE?'#fcd34d':'#71717a'};cursor:pointer;-webkit-tap-highlight-color:rgba(0,0,0,0);">
+      <span style="color:#d97706;margin-right:4px;">W${j+1}</span>${EB1A_THEMES[j]}
+    </div>`;
+  }
+  rows+=`</div>`;
+
+  rows+=`<div class="rule-card">
+    <div style="font-size:9px;letter-spacing:2px;color:#52525b;margin-bottom:8px;">☀️ SUNDAY PLANNING · 10 MINS</div>
+    1. Use ‹ › to pick your week<br/>2. Tap your AI PM focus<br/>3. Tap your EB1A focus<br/>
+    <span style="color:#52525b;">That's it. You're planned.</span>
+  </div>`;
+
+  el.innerHTML=rows;
 }
 
 // ─── STREAK ──────────────────────────────────────────────────────────
